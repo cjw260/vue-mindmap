@@ -1,0 +1,34 @@
+{
+  "name": "vue-work",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@vueuse/core": "^14.0.0",
+    "animate.css": "^4.1.1",
+    "element-plus": "^2.11.7",
+    "gsap": "^3.13.0",
+    "highlight.js": "^11.11.1",
+    "marked": "^17.0.0",
+    "marked-highlight": "^2.2.3",
+    "pinia": "^3.0.3",
+    "sass": "^1.94.2",
+    "three": "^0.181.2",
+    "vanta": "^0.5.24",
+    "vue": "^3.5.22",
+    "vue-router": "^4.6.3"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.1",
+    "vite": "^7.1.11",
+    "vite-plugin-vue-devtools": "^8.0.3"
+  }
+}
