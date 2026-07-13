@@ -11,20 +11,7 @@
 /* Manrope 是一款和 Mori 风格很像的几何无衬线字体 */
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap');
 
-@font-face {
-  font-family: 'Mori';
-  src: url('@/assets/fonts/PPMori-Regular.woff2') format('woff2');
-  font-weight: 400; /* 常规字重 */
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'Mori';
-  src: url('@/assets/fonts/PPMori-ExtraBold.woff2') format('woff2');
-  font-weight: 800; /* 粗体字重 */
-  font-style: normal;
-}
-*/
+/* Mori 字体文件缺失，使用 Manrope 替代（已通过 Google Fonts 引入）*/
 
 /* 全局基础设置 */
 body {
