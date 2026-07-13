@@ -65,11 +65,12 @@ async function fetchAndRender(category, title) {
     // 3. 开始顶部进度条动画
     loadingBar.start();
 
-    const fetchPath = `/md/${category}/${title}.md`; 
+    const base = import.meta.env.BASE_URL;
+    const fetchPath = `${base}md/${category}/${title}.md`; 
     
     const response = await fetch(fetchPath);
     if (!response.ok) {
-      const retryResponse = await fetch(`/public/md/${category}/${title}.md`);
+      const retryResponse = await fetch(`${base}md/${category}/${title}.md`);
       if(!retryResponse.ok) {
          throw new Error(`无法加载 Markdown：${response.status}`);
       }
