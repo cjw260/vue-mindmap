@@ -9,7 +9,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "server": "node server/mindmap-server.js"
   },
   "dependencies": {
     "@vueuse/core": "^14.0.0",
@@ -19,12 +20,16 @@
     "highlight.js": "^11.11.1",
     "marked": "^17.0.0",
     "marked-highlight": "^2.2.3",
+    "marked-katex-extension": "^5.1.6",
     "pinia": "^3.0.3",
     "sass": "^1.94.2",
     "three": "^0.181.2",
     "vanta": "^0.5.24",
     "vue": "^3.5.22",
-    "vue-router": "^4.6.3"
+    "vue-router": "^4.6.3",
+    "ws": "^8.18.3",
+    "y-websocket": "^1.5.4",
+    "yjs": "^13.6.21"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.1",

@@ -6,10 +6,12 @@
         <!-- 顶部栏 -->
         <div class="chat-header">
           <div class="header-left">
-            <div class="avatar-circle"><img style="width: 80%;" src="@/assets/img/deepseek.png"></div>
+            <div class="avatar-circle">
+              <img style="width: 80%" src="@/assets/img/deepseek.png" />
+            </div>
             <div class="header-text">
               <span class="title">AI 学习助教</span>
-              <span class="status">DeepSeek V3 在线</span>
+              <span class="status">DeepSeek V3.2 在线</span>
             </div>
           </div>
           <button class="close-btn" @click="toggleChat">×</button>
@@ -19,44 +21,60 @@
         <div class="messages-area" ref="messagesRef">
           <div v-if="messages.length === 0" class="welcome-card">
             <p>👋 同学你好！</p>
-            <p>我是你的专属 AI 助教。关于文章内容、代码疑惑或数学公式，都可以问我哦！</p>
+            <p>
+              我是你的专属 AI
+              助教。关于文章内容、代码疑惑或数学公式，都可以问我哦！
+            </p>
           </div>
 
-          <div 
-            v-for="(msg, index) in messages" 
-            :key="index" 
+          <div
+            v-for="(msg, index) in messages"
+            :key="index"
             class="message-row"
             :class="msg.role"
           >
             <!-- 头像 -->
-            <div class="message-avatar" v-if="msg.role === 'assistant'"><img style="width: 80%;" src="@/assets/img/deepseek.png"></div>
+            <div class="message-avatar" v-if="msg.role === 'assistant'">
+              <img style="width: 80%" src="@/assets/img/deepseek.png" />
+            </div>
             <div class="message-avatar user" v-else>🧑‍🎓</div>
 
             <!-- 气泡 -->
             <div class="message-bubble">
-              <div v-if="msg.role === 'assistant'" class="markdown-body" v-html="renderMarkdown(msg.content)"></div>
+              <div
+                v-if="msg.role === 'assistant'"
+                class="markdown-body"
+                v-html="renderMarkdown(msg.content)"
+              ></div>
               <div v-else>{{ msg.content }}</div>
             </div>
           </div>
 
           <!-- 加载动画 (仅在等待首字时显示) -->
           <div v-if="isLoading" class="message-row assistant">
-            <div class="message-avatar"><img style="width: 80%;" src="@/assets/img/deepseek.png"></div>
+            <div class="message-avatar">
+              <img style="width: 80%" src="@/assets/img/deepseek.png" />
+            </div>
             <div class="message-bubble loading">
-              <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+              <span class="dot"></span><span class="dot"></span
+              ><span class="dot"></span>
             </div>
           </div>
         </div>
 
         <!-- 输入区 -->
         <div class="input-area">
-          <textarea 
-            v-model="inputMsg" 
-            placeholder="输入你的问题，按 Enter 发送..." 
+          <textarea
+            v-model="inputMsg"
+            placeholder="输入你的问题，按 Enter 发送..."
             @keydown.enter.prevent="sendMessage"
             :disabled="isGenerating"
           ></textarea>
-          <button class="send-btn" @click="sendMessage" :disabled="isGenerating || !inputMsg.trim()">
+          <button
+            class="send-btn"
+            @click="sendMessage"
+            :disabled="isGenerating || !inputMsg.trim()"
+          >
             <span v-if="!isGenerating">发送</span>
             <span v-else>停止</span>
           </button>
@@ -65,36 +83,38 @@
     </transition>
 
     <!-- 悬浮开关按钮 -->
-    <button 
-      class="float-trigger" 
-      @click="toggleChat" 
-      :class="{ 'active': isOpen }"
+    <button
+      class="float-trigger"
+      @click="toggleChat"
+      :class="{ active: isOpen }"
       title="召唤 AI 助教"
     >
-      <span class="trigger-icon" v-if="!isOpen"><img style="width: 70%;" src="@/assets/img/deepseek2.png"></span>
+      <span class="trigger-icon" v-if="!isOpen"
+        ><img style="width: 70%" src="@/assets/img/deepseek2.png"
+      /></span>
       <span class="trigger-icon close" v-else>▼</span>
     </button>
   </div>
 </template>
 
 <script setup>
-import { ref, nextTick } from 'vue';
-import { marked } from 'marked';
+import { ref, nextTick } from "vue";
+import { marked } from "marked";
 
 // --- 状态管理 ---
-const isOpen = ref(false);         // 聊天窗口开启状态
-const inputMsg = ref('');          // 用户当前输入
-const isLoading = ref(false);      // 是否正在等待 API 响应首个字节
-const isGenerating = ref(false);   // 是否正在接收流式数据
-const messagesRef = ref(null);     // 消息列表 DOM 引用，用于滚动
+const isOpen = ref(false); // 聊天窗口开启状态
+const inputMsg = ref(""); // 用户当前输入
+const isLoading = ref(false); // 是否正在等待 API 响应首个字节
+const isGenerating = ref(false); // 是否正在接收流式数据
+const messagesRef = ref(null); // 消息列表 DOM 引用，用于滚动
 const abortController = ref(null); // AbortController 实例，用于中断请求
 
 // 消息历史数组，格式：{ role: 'user' | 'assistant', content: '...' }
 const messages = ref([]);
 
 // DeepSeek API 配置
-const API_KEY = 'sk-18ca34743fe24b22a9b6acb9b502e670';
-const API_URL = 'https://api.deepseek.com/chat/completions';
+const API_KEY = "sk-18ca34743fe24b22a9b6acb9b502e670";
+const API_URL = "https://api.deepseek.com/chat/completions";
 
 /**
  * 切换聊天窗口的显示/隐藏状态
@@ -115,7 +135,7 @@ const toggleChat = () => {
  */
 const renderMarkdown = (text) => {
   try {
-    return marked.parse(text || ''); // 处理空字符串防止报错
+    return marked.parse(text || ""); // 处理空字符串防止报错
   } catch (e) {
     return text;
   }
@@ -170,11 +190,11 @@ const sendMessage = async () => {
   if (!inputMsg.value.trim()) return;
 
   const userText = inputMsg.value.trim();
-  
+
   // 1. 添加用户消息到界面
-  messages.value.push({ role: 'user', content: userText });
-  inputMsg.value = '';
-  
+  messages.value.push({ role: "user", content: userText });
+  inputMsg.value = "";
+
   isLoading.value = true;
   isGenerating.value = true;
   scrollToBottom();
@@ -187,38 +207,52 @@ const sendMessage = async () => {
     const payload = {
       model: "deepseek-chat",
       messages: [
-        { role: "system", content: "你是一个乐于助人的计算机与数学学习助手。回答请简洁、专业，可以使用 Markdown 格式（如代码块、公式）。" },
-        ...messages.value.map(m => ({ role: m.role, content: m.content }))
+        {
+          role: "system",
+          content:
+            "你是一个乐于助人的计算机与数学学习助手。回答请简洁、专业，可以使用 Markdown 格式（如代码块、公式）。",
+        },
+        ...messages.value.map((m) => ({ role: m.role, content: m.content })),
       ],
-      stream: true 
+      stream: true,
     };
 
     // 3. 发起请求
     const response = await fetch(API_URL, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${API_KEY}`
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${API_KEY}`,
       },
       body: JSON.stringify(payload),
-      signal: abortController.value.signal
+      signal: abortController.value.signal,
     });
 
     if (!response.ok) {
-      throw new Error(`API 请求失败: ${response.status}`);
+      // 尝试获取详细的错误信息
+      let errorMessage = `API 请求失败: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        if (errorData.error && errorData.error.message) {
+          errorMessage = `API 请求失败: ${errorData.error.message}`;
+        }
+      } catch (e) {
+        // 如果无法解析错误响应，使用默认错误信息
+      }
+      throw new Error(errorMessage);
     }
 
     // 4. 处理流式响应 (Streams API)
     const reader = response.body.getReader();
     const decoder = new TextDecoder("utf-8");
-    
+
     // 先添加一个空的 AI 消息占位，准备接收数据
-    messages.value.push({ role: 'assistant', content: '' });
+    messages.value.push({ role: "assistant", content: "" });
     const currentMsgIndex = messages.value.length - 1;
-    
+
     // 开始接收数据，隐藏加载动画 (转圈圈)，转为打字机显示
     isLoading.value = false;
-    let buffer = '';
+    let buffer = "";
 
     while (true) {
       const { done, value } = await reader.read();
@@ -226,42 +260,45 @@ const sendMessage = async () => {
 
       const chunk = decoder.decode(value, { stream: true });
       buffer += chunk;
-      
+
       // 处理 SSE 格式数据 (data: {...})
       // 可能一次收到多行，也可能收到半行，需要 buffer 缓冲
-      const lines = buffer.split('\n');
+      const lines = buffer.split("\n");
       buffer = lines.pop(); // 保留最后一个可能不完整的行到下一次处理
 
       for (const line of lines) {
-        if (line.trim() === '') continue;
-        if (line.trim() === 'data: [DONE]') continue; // 结束标识
-        
-        if (line.startsWith('data: ')) {
+        if (line.trim() === "") continue;
+        if (line.trim() === "data: [DONE]") continue; // 结束标识
+
+        if (line.startsWith("data: ")) {
           try {
             const jsonStr = line.slice(6); // 去掉 'data: ' 前缀
             const json = JSON.parse(jsonStr);
-            const content = json.choices[0]?.delta?.content || '';
-            
+            const content = json.choices[0]?.delta?.content || "";
+
             // 逐字追加到当前消息
             messages.value[currentMsgIndex].content += content;
             scrollToBottom();
           } catch (e) {
-            console.error('解析流数据失败', e);
+            console.error("解析流数据失败", e);
           }
         }
       }
     }
-
   } catch (error) {
-    if (error.name === 'AbortError') {
-      console.log('生成已停止');
+    if (error.name === "AbortError") {
+      console.log("生成已停止");
     } else {
-      console.error('Chat Error:', error);
+      console.error("Chat Error:", error);
       // 如果出错时还没生成 AI 消息框，则新建一个显示错误
-      if (messages.value[messages.value.length - 1].role !== 'assistant') {
-         messages.value.push({ role: 'assistant', content: `出错啦：${error.message}` });
+      if (messages.value[messages.value.length - 1].role !== "assistant") {
+        messages.value.push({
+          role: "assistant",
+          content: `出错啦：${error.message}`,
+        });
       } else {
-         messages.value[messages.value.length - 1].content += `\n[出错：${error.message}]`;
+        messages.value[messages.value.length - 1].content +=
+          `\n[出错：${error.message}]`;
       }
     }
   } finally {
@@ -279,9 +316,11 @@ const sendMessage = async () => {
 .ai-assistant-container {
   position: fixed;
   bottom: 30px;
-  right: 90px; 
+  right: 90px;
   z-index: 2000;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
 }
 
 /* 悬浮球按钮 */
@@ -289,7 +328,7 @@ const sendMessage = async () => {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #5B88E1, #4a75d1);
+  background: linear-gradient(135deg, #5b88e1, #4a75d1);
   border: none;
   box-shadow: 0 4px 15px rgba(91, 136, 225, 0.4);
   cursor: pointer;
@@ -306,15 +345,15 @@ const sendMessage = async () => {
 
 .float-trigger.active {
   transform: rotate(90deg);
-  background: #475B6D;
+  background: #475b6d;
 }
 
 .trigger-icon {
   font-size: 28px;
   line-height: 1;
   display: flex;
-    align-items: center;
-    justify-content: center;
+  align-items: center;
+  justify-content: center;
 }
 
 /* 聊天窗口 */
@@ -330,13 +369,13 @@ const sendMessage = async () => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid rgba(0,0,0,0.05);
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 /* 头部 */
 .chat-header {
   padding: 15px 20px;
-  background: #5B88E1;
+  background: #5b88e1;
   color: white;
   display: flex;
   justify-content: space-between;
@@ -352,7 +391,7 @@ const sendMessage = async () => {
 .avatar-circle {
   width: 32px;
   height: 32px;
-  background: rgba(255,255,255,0.2);
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -450,12 +489,12 @@ const sendMessage = async () => {
 .message-row.assistant .message-bubble {
   background: white;
   border-top-left-radius: 2px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   color: #333;
 }
 
 .message-row.user .message-bubble {
-  background: #5B88E1;
+  background: #5b88e1;
   color: white;
   border-top-right-radius: 2px;
 }
@@ -482,14 +521,24 @@ textarea {
   font-size: 14px;
   outline: none;
   transition: border-color 0.2s;
+
+  /* 隐藏滚动条 - Firefox */
+  scrollbar-width: none;
+  /* 隐藏滚动条 - IE 10+ */
+  -ms-overflow-style: none;
+}
+
+/* 隐藏滚动条 - Chrome/Safari/Edge */
+textarea::-webkit-scrollbar {
+  display: none;
 }
 
 textarea:focus {
-  border-color: #5B88E1;
+  border-color: #5b88e1;
 }
 
 .send-btn {
-  background: #5B88E1;
+  background: #5b88e1;
   color: white;
   border: none;
   border-radius: 20px;
@@ -517,30 +566,46 @@ textarea:focus {
   animation: bounce 1.4s infinite ease-in-out both;
 }
 
-.loading .dot:nth-child(1) { animation-delay: -0.32s; }
-.loading .dot:nth-child(2) { animation-delay: -0.16s; }
+.loading .dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+.loading .dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
 
 @keyframes bounce {
-  0%, 80%, 100% { transform: scale(0); }
-  40% { transform: scale(1); }
+  0%,
+  80%,
+  100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
 }
 
 /* 动画效果 */
-.slide-fade-enter-active, .slide-fade-leave-active {
+.slide-fade-enter-active,
+.slide-fade-leave-active {
   transition: all 0.3s cubic-bezier(1, 0.5, 0.8, 1);
 }
-.slide-fade-enter-from, .slide-fade-leave-to {
+.slide-fade-enter-from,
+.slide-fade-leave-to {
   transform: translateY(20px) scale(0.95);
   opacity: 0;
 }
 
 /* Markdown 样式微调 */
-.markdown-body :deep(p) { margin: 0 0 8px 0; }
-.markdown-body :deep(p:last-child) { margin: 0; }
-.markdown-body :deep(pre) { 
-  background: #f4f4f4; 
-  padding: 8px; 
-  border-radius: 4px; 
+.markdown-body :deep(p) {
+  margin: 0 0 8px 0;
+}
+.markdown-body :deep(p:last-child) {
+  margin: 0;
+}
+.markdown-body :deep(pre) {
+  background: #f4f4f4;
+  padding: 8px;
+  border-radius: 4px;
   overflow-x: auto;
   margin: 8px 0;
 }
@@ -549,5 +614,7 @@ textarea:focus {
   font-size: 12px;
   color: #d63384;
 }
-.message-row.user .markdown-body { color: white; }
+.message-row.user .markdown-body {
+  color: white;
+}
 </style>

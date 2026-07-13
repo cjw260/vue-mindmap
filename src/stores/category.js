@@ -41,6 +41,11 @@ export const useCategoryStore = defineStore('category', () => {
         id: 6,
         name: '思维导图',
         to: '/mindMap'
+    },{
+        id: 7,
+        name: 'Markdown',
+        to: '/markdown',
+        categoryKey: 'markdown'
     }])
 // 文章列表
     const articleMap = ref({
@@ -82,7 +87,8 @@ export const useCategoryStore = defineStore('category', () => {
             {
                 id: 8,
                 title: '1.8 函数的连续性',
-                to: '/article/math/1.8 函数的连续性'
+                to: '/article/math/1.8 函数的连续性',
+                
             },
             {
                 id: 9,

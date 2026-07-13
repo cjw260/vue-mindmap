@@ -1,9 +1,21 @@
 <template>
   <div class="layout-wrapper">
-    <!-- 1. 顶栏：改为固定定位，并添加 Element Plus 风格透明特效 -->
-    <div class="layout-headerContainer">
+    <!-- 1. 顶栏：绑定动态样式变量，控制伪元素进度条 -->
+    <div 
+      class="layout-headerContainer"
+      :style="{ 
+        '--loading-w': loadingWidth + '%', 
+        '--loading-o': loadingOpacity 
+      }"
+    >
       <div class="layout-headerItemContainer">
-        <router-link class="layout-headerItem" v-for="item in categoryList" :key="item.id" :to=item.to :class="{ 'router-link-active': isTopNavActive(item) }">
+        <router-link
+          class="layout-headerItem"
+          v-for="item in categoryList"
+          :key="item.id"
+          :to="item.to"
+          :class="{ 'router-link-active': isTopNavActive(item) }"
+        >
           {{ item.name }}
         </router-link>
       </div>
@@ -19,19 +31,75 @@
 <script setup>
 import { useCategoryStore } from "@/stores/category";
 import { useRoute } from "vue-router";
+import { ref, provide, onUnmounted } from "vue";
+
 const categoryStore = useCategoryStore();
 const categoryList = categoryStore.categoryList;
 const route = useRoute();
+
 const isTopNavActive = (item) => {
-  // 检查 '首页' 或其他非文章类链接
   if (!item.to.startsWith("/article/")) {
     return route.path === item.to;
   }
-
-  // 检查文章类链接 (如 "高数")
-  // 核心：检查当前路由的 category 参数是否等于 item 的 categoryKey
   return route.params.category === item.categoryKey;
 };
+
+// --- 核心逻辑：进度条控制 ---
+const loadingWidth = ref(0);
+const loadingOpacity = ref(0);
+let loadTimer = null;
+
+const startLoading = () => {
+  // 重置状态
+  if (loadTimer) clearInterval(loadTimer);
+  loadingWidth.value = 0;
+  loadingOpacity.value = 1; // 出现
+
+  // 启动定时器模拟进度
+  loadTimer = setInterval(() => {
+    // 阶段1: 0% -> 70% 匀速较快增长
+    if (loadingWidth.value < 70) {
+      // 每次加随机一点点，模拟网络波动，但也比较匀速
+      loadingWidth.value += Math.random() * 2 + 1; 
+    } 
+    // 阶段2: 70% -> 95% 龟速爬行 (丝滑缓慢)
+    // 只要没调用 finish，它就会永远卡在这里慢慢走，给用户一种"马上就好"的感觉
+    else if (loadingWidth.value < 95) {
+      loadingWidth.value += 0.1; 
+    }
+  }, 20); // 20ms 刷新一次，非常丝滑
+};
+
+const finishLoading = () => {
+  if (loadTimer) clearInterval(loadTimer);
+  
+  // 阶段3: 瞬间拉满到 100%
+  loadingWidth.value = 100;
+
+  // 阶段4: 延迟一点点后，渐隐消失
+  setTimeout(() => {
+    loadingOpacity.value = 0;
+    
+    // 动画结束后重置宽度（为了下一次不穿帮）
+    setTimeout(() => {
+      loadingWidth.value = 0;
+    }, 400); // 对应 CSS transition 的 opacity 时间
+  }, 300); // 在 100% 停留 300ms 让用户看到
+};
+
+// 将控制方法提供给子组件 (MarkdownRender)
+provide('loadingBar', {
+  start: startLoading,
+  finish: finishLoading
+});
+
+// 组件卸载时清理定时器，防止内存泄漏和卡死
+onUnmounted(() => {
+  if (loadTimer) {
+    clearInterval(loadTimer);
+    loadTimer = null;
+  }
+});
 </script>
 
 <style scoped>
@@ -46,7 +114,7 @@ const isTopNavActive = (item) => {
   height: 60px;
   width: 100%;
   padding: 0 20px;
-  
+
   /* --- 核心修改：透明点阵顶栏 --- */
   position: fixed; /* 固定在顶部 */
   top: 0;
@@ -56,11 +124,7 @@ const isTopNavActive = (item) => {
   /* 1. 背景色：半透明白色底色 */
   background-color: rgba(255, 255, 255, 0.7);
 
-  /* 2. 点阵纹理 (关键)：
-     创建一个 "中间透明(transparent 1px)，周围白色(#ffffff 1px)" 的径向渐变。
-     这就像给白色背景打了无数个微小的孔。
-     当文字滑过下方时，只能通过这些透明小孔透出来，从而形成“点点轮廓”的效果。
-  */
+  /* 2. 点阵纹理 */
   background-image: radial-gradient(transparent 1px, #ffffff 1px);
   background-size: 4px 4px; /* 控制点阵的密度 */
 
@@ -76,13 +140,36 @@ const isTopNavActive = (item) => {
   justify-content: center;
 }
 
+/* --- 进度条伪元素 --- */
+.layout-headerContainer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  
+  /* 核心改动：使用 CSS 变量控制宽度和透明度 */
+  width: var(--loading-w, 0%);
+  opacity: var(--loading-o, 0);
+  
+  height: 4px; /* 进度条高度 */
+  background-color: #468FFB; /* 进度条颜色 */
+  z-index: 2001;
+  
+  /* 关键：添加 transition 实现丝滑过渡 */
+  /* width 用 ease-out 让它在每一帧变化时都带点惯性，看起来更连贯 */
+  /* opacity 用 ease 即可 */
+  transition: width 0.2s ease-out, opacity 0.4s ease;
+  
+  border-bottom-right-radius: 4px; /* 右边加个圆角，进度条头看起来圆润点 */
+}
+
 .layout-headerItemContainer {
   height: 100%;
   width: 100%;
   max-width: 1260px;
   display: flex;
   align-items: center;
-  justify-content: center
+  justify-content: center;
 }
 
 .layout-headerItem {
@@ -91,7 +178,7 @@ const isTopNavActive = (item) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #475B6D;
+  color: #475b6d;
   text-decoration: none;
   font-weight: 500;
   transition: color 0.3s ease;
@@ -99,17 +186,13 @@ const isTopNavActive = (item) => {
 
 .layout-headerItem:hover,
 .layout-headerItem.router-link-active {
-  color: #5B88E1;
+  color: #5b88e1;
 }
 
-.layout-mainContainer{
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    
-    /* 关键：增加顶部内边距 */
-    /* 60px(顶栏高度) + 25px(原有的间距) = 85px */
+.layout-mainContainer {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
 }
-
 </style>

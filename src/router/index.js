@@ -18,6 +18,9 @@ const router = createRouter({
       },{
         path: '/mindMap',
         component: () => import('../views/mindMap/index-mindMap.vue'),
+      },{
+        path: '/markdown',
+        component: () => import('../views/markdown/index-markdown.vue'),
       }
     ]
   }],
