@@ -49,7 +49,6 @@
     <transition name="fade">
       <button v-if="y > 300" @click="scrollToTop" class="back-to-top">↑</button>
     </transition>
-    <AIChatAssistant></AIChatAssistant>
   </div>
 </template>
 
@@ -59,7 +58,6 @@ import { useCategoryStore } from "@/stores/category";
 import MarkdownRender from "./components/MarkdownRender.vue";
 import { useScroll } from "@vueuse/core";
 import { computed, ref, onUnmounted, nextTick } from "vue";
-import AIChatAssistant from "./components/AIChatAssistant.vue";
 
 const { y } = useScroll(window);
 const categoryStore = useCategoryStore();

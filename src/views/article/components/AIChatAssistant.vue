@@ -113,7 +113,7 @@ const abortController = ref(null); // AbortController 实例，用于中断请�
 const messages = ref([]);
 
 // DeepSeek API 配置
-const API_KEY = "sk-18ca34743fe24b22a9b6acb9b502e670";
+const API_KEY = ""; // Disabled until a protected server-side integration is available.
 const API_URL = "https://api.deepseek.com/chat/completions";
 
 /**

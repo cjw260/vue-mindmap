@@ -29,7 +29,7 @@
             />
             <button class="sidebar-btn primary" @click="reconnect">进入</button>
           </div>
-          <div class="server-tip">后端地址: ws://localhost:1234</div>
+          <div class="server-tip">协作服务连接失败，请稍后重试</div>
         </div>
       </div>
 
@@ -189,7 +189,10 @@ const initYjs = () => {
 
   // 2. 连接本地 Node.js WebSocket 服务
   // 端口要和 server.js 里的一致 (1234)
-  provider = new WebsocketProvider("ws://localhost:1234", roomName.value, ydoc);
+  const wsUrl = import.meta.env.DEV
+    ? "ws://localhost:1234"
+    : `${window.location.protocol === "https:" ? "wss:" : "ws:"}//${window.location.host}/mindmap-ws`;
+  provider = new WebsocketProvider(wsUrl, roomName.value, ydoc);
 
   // 3. 绑定数据结构
   yNodesMap = ydoc.getMap("nodes");
