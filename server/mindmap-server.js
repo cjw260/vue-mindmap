@@ -1,4 +1,5 @@
 import { WebSocketServer } from 'ws';
+import http from 'node:http';
 import { createRequire } from 'module';
 import path from 'path';
 import { pathToFileURL } from 'url';
@@ -22,7 +23,16 @@ const PORT = Number(process.env.MINDMAP_WS_PORT || 1234);
 // 记录活跃房间，用于日志观测
 const rooms = new Map();
 
-const wss = new WebSocketServer({ port: PORT });
+const server = http.createServer((req, res) => {
+  if (req.url === '/healthz') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    return res.end('{"status":"ok"}');
+  }
+  res.writeHead(404);
+  res.end();
+});
+const wss = new WebSocketServer({ server });
+server.listen(PORT);
 
 wss.on('connection', (conn, req) => {
   // 路由格式：ws://host:port/<roomName>
